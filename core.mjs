@@ -1,3 +1,4 @@
+export const BILIBILI_ID = 'BV1u2421M7EE';
 export const VIDEO_ID = 'WhkjRruCBTo';
 const step = (n, action, cue, facing) => ({n, action, cue, facing});
 export const lessons = [
@@ -46,7 +47,7 @@ function validAttempt(a){return a&&lessons.some(l=>l.id===a.lesson)&&Object.hasO
 export function readStore(storage){
  try {const d=JSON.parse(storage.getItem(STORE_KEY));if(!d||Array.isArray(d)||!Array.isArray(d.attempts))return empty();
  const result=empty();result.attempts=d.attempts.filter(validAttempt).slice(-500);
- for(const l of lessons){for(const source of ['online','local']){const key=`${source}:${l.id}`, r=d.ranges?.[key];if(r&&validRange(r.start,r.end))result.ranges[key]={start:parseTime(r.start),end:parseTime(r.end)};}if(typeof d.notes?.[l.id]==='string')result.notes[l.id]=d.notes[l.id].slice(0,1000);}
+ for(const l of lessons){for(const source of ['online','bilibili','local']){const key=`${source}:${l.id}`, r=d.ranges?.[key];if(r&&validRange(r.start,r.end))result.ranges[key]={start:parseTime(r.start),end:parseTime(r.end)};}if(typeof d.notes?.[l.id]==='string')result.notes[l.id]=d.notes[l.id].slice(0,1000);}
  return result;
  }catch{return empty();}
 }

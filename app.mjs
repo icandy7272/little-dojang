@@ -1,17 +1,17 @@
-import {lessons,statuses,VIDEO_ID,dayKey,parseTime,validRange,formatTime,readStore,writeStore,saveAttempt,summary} from './core.mjs';
+import {lessons,statuses,VIDEO_ID,BILIBILI_ID,dayKey,parseTime,validRange,formatTime,readStore,writeStore,saveAttempt,summary} from './core.mjs';
 import {LessonPlayer} from './player.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 let storage;try{storage=window.localStorage;}catch{storage=null;}
 let pendingLocalFile=null,activeFileName='';
-let data=readStore(storage),index=0,mode='watch',chosenStatus=null,source='online',revealed=false,loaded=false,lastDay=dayKey();
+let data=readStore(storage),index=0,mode='watch',chosenStatus=null,source='bilibili',revealed=false,loaded=false,lastDay=dayKey();
 const player=new LessonPlayer({message:text=>{$('#player-message').textContent=text;},onReady:ready=>{$('#replay').disabled=!ready;}});
 const lesson=()=>lessons[index];
 const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function persist(){const ok=writeStore(storage,data);if(!ok)toast('浏览器无法保存记录，本次记录只会保留到页面关闭。');return ok;}
 let toastTimer;
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),4000);}
-function getRange(){return data.ranges[`${source}:${lesson().id}`]??(source==='online'?{start:lesson().start,end:lesson().end}:null);}
+function getRange(){return data.ranges[`${source}:${lesson().id}`]??(source!=='local'?{start:lesson().start,end:lesson().end}:null);}
 function renderProgress(){const s=summary(data);$('#progress-label').textContent=`${s.practiced} / 4 段已练`;$('#progress-bar').style.width=`${s.practiced/4*100}%`;$('#today-description').textContent=s.attempts?`今天练了 ${s.attempts} 次，${s.independent} 段最近一次可以独立完成。`:'今天还没有记录，从喜欢的一段开始吧。';
  const next=lessons.find(l=>s.latest[l.id]?.status!=='independent');$('#suggestion').textContent=next?`练练第 ${lessons.indexOf(next)+1} 段 →`:'再回顾一小段 →';
  $('#lesson-list').innerHTML=lessons.map((l,i)=>{const latest=s.latest[l.id];return `<button class="lesson-item ${i===index?'active':''}" data-lesson="${i}" aria-current="${i===index?'step':'false'}"><span class="lesson-number">${String(i+1).padStart(2,'0')}</span><span class="lesson-text"><strong>${l.name}</strong><small>${l.range} · ${l.subtitle.split(' · ')[0]}</small><span class="lesson-status ${latest?'':'empty'}">${latest?(latest.status==='independent'?'✓ ':'· ')+statuses[latest.status]:'今天还未练习'}</span></span></button>`;}).join('');
@@ -30,11 +30,14 @@ function renderMode(){
  $('#training-panel').setAttribute('aria-labelledby',`mode-${mode}`);
  const solo=mode==='solo';$('#video-shell').hidden=solo;$('#player-toolbar').hidden=solo;$('#player-message').hidden=solo;$('#solo-panel').hidden=!solo;$('#cue-panel').hidden=solo&&!revealed;$('#steps-section').hidden=solo&&!revealed;
  $('#reveal-cues').textContent=revealed?'把提示收起来':'想不起来？给我一点提示';
- if(solo)player.pause();
+ if(solo){player.pause();if(source==='bilibili')loaded=false;}
  if(!loaded){$('#video-cover').hidden=false;$('#local-player').hidden=true;const online=$('#online-player');if(online)online.hidden=true;}
- $('#video-cover').setAttribute('aria-label',`播放第 ${index+1} 段${source==='local'?'本地':'官方'}示范`);
- $('#load-video').innerHTML=source==='local'?'播放本地分段示范':'播放官方分段示范 <span aria-hidden="true">↗</span>';
- $('.video-footnote').textContent=source==='local'?'本机视频 · 不会上传':'国技院官方视频 · YouTube 在线播放';
+ $('#video-cover').setAttribute('aria-label',`播放第 ${index+1} 段${source==='local'?'本地':source==='bilibili'?'B 站':'官方'}示范`);
+ $('#load-video').textContent=source==='local'?'播放本地分段示范':source==='bilibili'?'播放 B 站分段示范':'播放 YouTube 官方示范';
+ $('.video-footnote').textContent=source==='local'?'本机视频 · 不会上传':source==='bilibili'?'国技院教学 · B 站中文字幕版':'国技院官方视频 · YouTube 在线播放';
+ $('#loop').closest('label').hidden=source==='bilibili';$('#speed').closest('label').hidden=source==='bilibili';$('#collapse-video').hidden=source!=='bilibili';
+ const r=getRange();if(!loaded)$('#player-message').textContent=source==='bilibili'?`B 站在线播放 · 本段结束 ${formatTime(r.end)} 请手动暂停，倍速在视频中设置。`:source==='local'?'选择本机教学视频，不会上传。':'YouTube 在线示范；无法访问时，可切换 B 站。';
+ if(typeof fallback!=='undefined')updateLink();
  const range=getRange();if(range)$('#clip-description').textContent=`第 ${index+1} 段 · ${formatTime(range.start)}–${formatTime(range.end)}`;
 }
 function selectLesson(i){if(i<0||i>=lessons.length)return;index=i;renderLesson();}
@@ -42,13 +45,13 @@ function renderStatus(){for(const b of $$('[data-status]'))b.setAttribute('aria-
 async function openVideo(){const range=getRange();if(!range||source==='local'&&!player.localURL){openSettings();toast('请先选择本地视频，并为当前一段设置时间。');return;}
  loaded=true;$('#video-cover').disabled=true;try{await player.open({source,range});}finally{$('#video-cover').disabled=false;}}
 function openSettings(){pendingLocalFile=null;$('#local-file').value='';$('#local-file-name').textContent=activeFileName?`正在使用：${activeFileName}（仅在本机播放）`:'尚未选择视频。刷新页面后需重新选择文件。';const l=lesson();$('#range-title').textContent=`第 ${index+1} 段：${l.name}`;$('#video-source').value=source;renderSettingsRange();$('#settings-dialog').showModal();}
-function renderSettingsRange(){const selected=$('#video-source').value,l=lesson(),r=data.ranges[`${selected}:${l.id}`]??(selected==='online'?{start:l.start,end:l.end}:null);$('#range-start').value=r?formatTime(r.start):'';$('#range-end').value=r?formatTime(r.end):'';$('#range-error').textContent='';$('#range-help').textContent=selected==='online'?'当前为官方视频分段；可以微调起止位置。':'本地文件的时间与官方视频不同，请为当前分段填写对应的起止位置。';$('#reset-range').hidden=selected!=='online';}
+function renderSettingsRange(){const selected=$('#video-source').value,l=lesson(),r=data.ranges[`${selected}:${l.id}`]??(selected!=='local'?{start:l.start,end:l.end}:null);$('#range-start').value=r?formatTime(r.start):'';$('#range-end').value=r?formatTime(r.end):'';$('#range-error').textContent='';$('#range-help').textContent=selected!=='local'?'可微调分段时间。B 站从开始时间起播，结束时请在播放器内暂停。':'本地文件的时间与官方视频不同，请为当前分段填写对应的起止位置。';$('#reset-range').hidden=selected==='local';}
 $('#lesson-list').addEventListener('click',e=>{const b=e.target.closest('[data-lesson]');if(b)selectLesson(Number(b.dataset.lesson));});
 $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;revealed=false;renderMode();}));
 $('.mode-tabs').addEventListener('keydown',e=>{const modes=['watch','together','solo'];if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();let i=modes.indexOf(mode);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;mode=modes[i];revealed=false;renderMode();$(`#mode-${mode}`).focus();}});
 $('#previous').addEventListener('click',()=>selectLesson(index-1));$('#next').addEventListener('click',()=>selectLesson(index+1));
 $('#suggestion').addEventListener('click',()=>{const s=summary(data),i=lessons.findIndex(l=>s.latest[l.id]?.status!=='independent');selectLesson(i<0?0:i);$('#practice').scrollIntoView({behavior:'smooth'});});
-$('#video-cover').addEventListener('click',openVideo);$('#replay').addEventListener('click',()=>player.replay());$('#loop').addEventListener('change',e=>{player.loop=e.target.checked;});$('#speed').addEventListener('change',e=>player.setSpeed(Number(e.target.value)));
+$('#video-cover').addEventListener('click',openVideo);$('#collapse-video').addEventListener('click',()=>{player.pause();loaded=false;renderMode();});$('#replay').addEventListener('click',()=>player.replay());$('#loop').addEventListener('change',e=>{player.loop=e.target.checked;});$('#speed').addEventListener('change',e=>player.setSpeed(Number(e.target.value)));
 $('#reveal-cues').addEventListener('click',()=>{revealed=!revealed;renderMode();});
 $('#speak-cue').addEventListener('click',()=>{if(!('speechSynthesis' in window)){toast('此浏览器不支持朗读，可以直接念给孩子听。');return;}window.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(lesson().chant);speech.lang='zh-CN';speech.rate=.8;speech.onerror=()=>toast('口令朗读暂不可用，可以由家长慢慢念给孩子听。');window.speechSynthesis.speak(speech);});
 $$('[data-status]').forEach(b=>b.addEventListener('click',()=>{chosenStatus=b.dataset.status;if(chosenStatus==='independent')$('#prompt-count').value='0';if(chosenStatus==='prompted'&&Number($('#prompt-count').value)===0)$('#prompt-count').value='1';renderStatus();}));
@@ -70,13 +73,14 @@ $('#range-form').addEventListener('submit',e=>{e.preventDefault();const a=$('#ra
  const r={start:parseTime(a),end:parseTime(b)};if(selected==='local'&&!pendingLocalFile&&Number.isFinite(player.video.duration)&&r.end>player.video.duration){$('#range-error').textContent=`视频只有 ${formatTime(player.video.duration)}，请缩短结束时间。`;return;}
  if(selected==='local'&&pendingLocalFile){player.setFile(pendingLocalFile);activeFileName=pendingLocalFile.name;pendingLocalFile=null;}data.ranges[`${selected}:${lesson().id}`]=r;source=selected;persist();$('#settings-dialog').close();mode=mode==='solo'?'watch':mode;renderMode();openVideo();});
 $('#reset-range').addEventListener('click',()=>{$('#range-start').value=formatTime(lesson().start);$('#range-end').value=formatTime(lesson().end);$('#range-error').textContent='';});
-$('#whole-video').addEventListener('click',()=>window.open(`https://www.youtube.com/watch?v=${VIDEO_ID}&t=896s`,'_blank','noopener'));
-$('#explain-video').addEventListener('click',()=>window.open(`https://www.youtube.com/watch?v=${VIDEO_ID}&t=${lesson().explain}s`,'_blank','noopener'));
-function printLessons(all){const selected=all?lessons:[lesson()];$('#print-area').innerHTML=selected.map(l=>`<section class="print-sheet"><p>小小道馆 · 太极一章亲子陪练</p><h1>${escape(l.name)}</h1><p>${escape(l.range)} · ${escape(l.subtitle)}</p><p class="print-chant">${escape(l.chant)}</p><h2>动作分解</h2><ol>${l.steps.map(s=>`<li value="${s.n}"><strong>${escape(s.cue)}</strong><br>${escape(s.action)}。面向起始朝向的${escape(s.facing)}方。</li>`).join('')}</ol><h2>家长只盯一个重点</h2><p>${escape(l.focus)}</p><p>${escape(l.help)}</p><p>鼓励孩子：${escape(l.praise)}</p><p>全部方向以起始朝向为参照，左右以练习者自己为准。先记顺序，技术细节由教练确认。</p><p class="print-check">日期：____________　□ 独立完成　□ 需要提示　□ 再练一练<br><br>提示次数：______　陪练小记：________________________________</p><p class="print-source">官方示范：https://www.youtube.com/watch?v=${VIDEO_ID}&t=${l.start}s （${formatTime(l.start)}–${formatTime(l.end)}）<br>中文口令为记忆辅助，非官方技术译文。</p></section>`).join('');window.print();}
+$('#whole-video').addEventListener('click',()=>window.open(sourceURL(896),'_blank','noopener'));
+$('#explain-video').addEventListener('click',()=>window.open(sourceURL(lesson().explain),'_blank','noopener'));
+function printLessons(all){const selected=all?lessons:[lesson()];$('#print-area').innerHTML=selected.map(l=>`<section class="print-sheet"><p>小小道馆 · 太极一章亲子陪练</p><h1>${escape(l.name)}</h1><p>${escape(l.range)} · ${escape(l.subtitle)}</p><p class="print-chant">${escape(l.chant)}</p><h2>动作分解</h2><ol>${l.steps.map(s=>`<li value="${s.n}"><strong>${escape(s.cue)}</strong><br>${escape(s.action)}。面向起始朝向的${escape(s.facing)}方。</li>`).join('')}</ol><h2>家长只盯一个重点</h2><p>${escape(l.focus)}</p><p>${escape(l.help)}</p><p>鼓励孩子：${escape(l.praise)}</p><p>全部方向以起始朝向为参照，左右以练习者自己为准。先记顺序，技术细节由教练确认。</p><p class="print-check">日期：____________　□ 独立完成　□ 需要提示　□ 再练一练<br><br>提示次数：______　陪练小记：________________________________</p><p class="print-source">示范来源：${sourceURL(l.start)} （${formatTime(l.start)}–${formatTime(l.end)}）<br>中文口令为记忆辅助，非官方技术译文。</p></section>`).join('');window.print();}
 $('#print-card').addEventListener('click',()=>printLessons(false));$('#print-guide').addEventListener('click',()=>printLessons(true));
 // A visible link remains usable if an embed is blocked by the platform or network.
 const fallback=document.createElement('a');fallback.id='original-video';fallback.target='_blank';fallback.rel='noopener';fallback.className='text-button';fallback.style.fontSize='10px';fallback.textContent='在原平台打开本段 ↗';$('#player-toolbar').append(fallback);
-function updateLink(){fallback.href=`https://www.youtube.com/watch?v=${VIDEO_ID}&t=${lesson().start}s`;}
+function sourceURL(start){return source==='online'?`https://www.youtube.com/watch?v=${VIDEO_ID}&t=${start}s`:`https://www.bilibili.com/video/${BILIBILI_ID}/?t=${start}`;}
+function updateLink(){fallback.href=sourceURL(getRange()?.start??lesson().start);}
 $('#lesson-list').addEventListener('click',updateLink);$('#previous').addEventListener('click',updateLink);$('#next').addEventListener('click',updateLink);$('#suggestion').addEventListener('click',updateLink);
 window.addEventListener('focus',()=>{if(lastDay!==dayKey()){lastDay=dayKey();renderProgress();}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){player.pause();if('speechSynthesis'in window)window.speechSynthesis.cancel();}});

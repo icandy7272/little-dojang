@@ -1,4 +1,5 @@
-import {VIDEO_ID, formatTime} from './core.mjs';
+import {VIDEO_ID, BILIBILI_ID, formatTime} from './core.mjs';
+export function bilibiliEmbedURL(start,autoplay=true){const u=new URL('https://player.bilibili.com/player.html');u.search=new URLSearchParams({bvid:BILIBILI_ID,p:'1',t:String(Math.max(0,Math.floor(start))),autoplay:autoplay?'1':'0',danmaku:'0'});return u.href;}
 let apiPromise;
 function loadApi(){
  if(window.YT?.Player)return Promise.resolve(window.YT);
@@ -19,13 +20,19 @@ export class LessonPlayer{
  this.video.addEventListener('error',()=>this.message('这个视频无法播放，请选择浏览器支持的 MP4、WebM 等视频。'));
  this.timer=setInterval(()=>this.checkEnd(),150);
  }
- pause(){this.allowAutoplay=false;try{this.yt?.pauseVideo?.();}catch{}this.video.pause();}
+ pause(){this.allowAutoplay=false;try{this.yt?.pauseVideo?.();}catch{}this.video.pause();if(this.biliFrame){this.biliFrame.remove();this.biliFrame=null;this.ready=false;this.cover.hidden=false;this.onReady(false);}}
  stop(){this.generation++;this.pause();this.endHandled=false;}
  onLocalPlay(){if(this.source!=='local'||!this.range)return;this.endHandled=false;if(this.video.currentTime<this.range.start||this.video.currentTime>=this.range.end-.08)this.video.currentTime=this.range.start;}
  async open({source,range,autoplay=true}){
  this.stop();this.allowAutoplay=autoplay;this.source=source;this.range=range;this.ready=false;this.onReady(false);const generation=this.generation;
- this.video.hidden=source!=='local';document.querySelector('#online-player').hidden=source==='local';
+ this.video.hidden=source!=='local';document.querySelector('#online-player').hidden=source!=='online';
  this.message('正在准备示范…');
+ if(source==='bilibili'){
+  this.cover.hidden=true;const frame=document.createElement('iframe');this.biliFrame=frame;frame.id='bilibili-player';frame.title='B 站太极一章中文字幕示范';frame.allow='autoplay; fullscreen; picture-in-picture';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';frame.src=bilibiliEmbedURL(range.start,autoplay);
+  const notice=`B 站示范 · ${formatTime(range.start)}–${formatTime(range.end)}。到 ${formatTime(range.end)} 请在视频中暂停；倍速也在视频中设置。`;
+  frame.addEventListener('load',()=>{if(generation!==this.generation||this.biliFrame!==frame)return;this.ready=true;this.onReady(true);this.message(notice+' 若无法播放，可在 B 站打开。');});
+  this.message(notice);document.querySelector('#video-shell').prepend(frame);return;
+ }
  if(source==='local'){
   if(!this.localURL){this.cover.hidden=false;this.message('请先选择本地教学视频，并为这一段设置开始、结束时间。');return;}
   this.cover.hidden=true;
@@ -48,13 +55,13 @@ export class LessonPlayer{
  }catch(e){if(generation!==this.generation)return;this.cover.hidden=false;this.message(e.message);}
  }
  onOnlinePlay(target){const finished=this.endHandled;this.endHandled=false;const time=target.getCurrentTime();if(finished||time<this.range.start-.5||time>=this.range.end-.08)target.seekTo(this.range.start,true);}
- checkEnd(){if(!this.ready||!this.range)return;
+ checkEnd(){if(!this.ready||!this.range||this.source==='bilibili')return;
  let t=0,playing=false;
  if(this.source==='local'){t=this.video.currentTime;playing=!this.video.paused;}else{try{t=this.yt?.getCurrentTime?.()??0;playing=this.yt?.getPlayerState?.()===1;}catch{return;}}
  if(!playing||this.endHandled)return;
  if(t>=this.range.end-.08){if(this.loop){this.replay();}else{this.endHandled=true;if(this.source==='local')this.video.pause();else this.yt?.pauseVideo();this.message('这一段看完啦。暂停一下，和孩子试着做一遍。');}}
  }
- replay(){if(!this.ready||!this.range)return;this.endHandled=false;if(this.source==='local'){this.video.currentTime=this.range.start;this.play();}else{this.yt.seekTo(this.range.start,true);this.yt.playVideo();}}
+ replay(){if(!this.ready||!this.range)return;if(this.source==='bilibili'){this.open({source:this.source,range:this.range});return;}this.endHandled=false;if(this.source==='local'){this.video.currentTime=this.range.start;this.play();}else{this.yt.seekTo(this.range.start,true);this.yt.playVideo();}}
  play(){this.video.play().catch(()=>this.message('请点击视频中的播放按钮，开始本地示范。'));}
  setSpeed(speed){this.speed=speed;if(this.source==='local')this.video.playbackRate=speed;else if(this.ready){try{const available=this.yt.getAvailablePlaybackRates();if(available.includes(speed))this.yt.setPlaybackRate(speed);else this.message('此视频暂不支持这个速度，请使用播放器中的速度选项。');}catch{}}}
  setFile(file){this.stop();this.ready=false;this.onReady(false);if(this.localURL)URL.revokeObjectURL(this.localURL);this.localURL=URL.createObjectURL(file);this.video.src=this.localURL;this.video.load();}
