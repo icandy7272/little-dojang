@@ -32,6 +32,7 @@ function renderMode(){
  $('#reveal-cues').textContent=revealed?'把提示收起来':'想不起来？给我一点提示';
  if(solo)player.pause();
  if(!loaded){$('#video-cover').hidden=false;$('#local-player').hidden=true;const online=$('#online-player');if(online)online.hidden=true;}
+ $('#video-cover').setAttribute('aria-label',`播放第 ${index+1} 段${source==='local'?'本地':'官方'}示范`);
  $('#load-video').innerHTML=source==='local'?'播放本地分段示范':'播放官方分段示范 <span aria-hidden="true">↗</span>';
  $('.video-footnote').textContent=source==='local'?'本机视频 · 不会上传':'国技院官方视频 · YouTube 在线播放';
  const range=getRange();if(range)$('#clip-description').textContent=`第 ${index+1} 段 · ${formatTime(range.start)}–${formatTime(range.end)}`;
@@ -39,7 +40,7 @@ function renderMode(){
 function selectLesson(i){if(i<0||i>=lessons.length)return;index=i;renderLesson();}
 function renderStatus(){for(const b of $$('[data-status]'))b.setAttribute('aria-pressed',String(chosenStatus===b.dataset.status));$('#save-attempt').disabled=!chosenStatus;}
 async function openVideo(){const range=getRange();if(!range||source==='local'&&!player.localURL){openSettings();toast('请先选择本地视频，并为当前一段设置时间。');return;}
- loaded=true;await player.open({source,range});}
+ loaded=true;$('#video-cover').disabled=true;try{await player.open({source,range});}finally{$('#video-cover').disabled=false;}}
 function openSettings(){pendingLocalFile=null;$('#local-file').value='';$('#local-file-name').textContent=activeFileName?`正在使用：${activeFileName}（仅在本机播放）`:'尚未选择视频。刷新页面后需重新选择文件。';const l=lesson();$('#range-title').textContent=`第 ${index+1} 段：${l.name}`;$('#video-source').value=source;renderSettingsRange();$('#settings-dialog').showModal();}
 function renderSettingsRange(){const selected=$('#video-source').value,l=lesson(),r=data.ranges[`${selected}:${l.id}`]??(selected==='online'?{start:l.start,end:l.end}:null);$('#range-start').value=r?formatTime(r.start):'';$('#range-end').value=r?formatTime(r.end):'';$('#range-error').textContent='';$('#range-help').textContent=selected==='online'?'当前为官方视频分段；可以微调起止位置。':'本地文件的时间与官方视频不同，请为当前分段填写对应的起止位置。';$('#reset-range').hidden=selected!=='online';}
 $('#lesson-list').addEventListener('click',e=>{const b=e.target.closest('[data-lesson]');if(b)selectLesson(Number(b.dataset.lesson));});
@@ -47,7 +48,7 @@ $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode
 $('.mode-tabs').addEventListener('keydown',e=>{const modes=['watch','together','solo'];if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();let i=modes.indexOf(mode);i=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;mode=modes[i];revealed=false;renderMode();$(`#mode-${mode}`).focus();}});
 $('#previous').addEventListener('click',()=>selectLesson(index-1));$('#next').addEventListener('click',()=>selectLesson(index+1));
 $('#suggestion').addEventListener('click',()=>{const s=summary(data),i=lessons.findIndex(l=>s.latest[l.id]?.status!=='independent');selectLesson(i<0?0:i);$('#practice').scrollIntoView({behavior:'smooth'});});
-$('#load-video').addEventListener('click',openVideo);$('#replay').addEventListener('click',()=>player.replay());$('#loop').addEventListener('change',e=>{player.loop=e.target.checked;});$('#speed').addEventListener('change',e=>player.setSpeed(Number(e.target.value)));
+$('#video-cover').addEventListener('click',openVideo);$('#replay').addEventListener('click',()=>player.replay());$('#loop').addEventListener('change',e=>{player.loop=e.target.checked;});$('#speed').addEventListener('change',e=>player.setSpeed(Number(e.target.value)));
 $('#reveal-cues').addEventListener('click',()=>{revealed=!revealed;renderMode();});
 $('#speak-cue').addEventListener('click',()=>{if(!('speechSynthesis' in window)){toast('此浏览器不支持朗读，可以直接念给孩子听。');return;}window.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(lesson().chant);speech.lang='zh-CN';speech.rate=.8;speech.onerror=()=>toast('口令朗读暂不可用，可以由家长慢慢念给孩子听。');window.speechSynthesis.speak(speech);});
 $$('[data-status]').forEach(b=>b.addEventListener('click',()=>{chosenStatus=b.dataset.status;if(chosenStatus==='independent')$('#prompt-count').value='0';if(chosenStatus==='prompted'&&Number($('#prompt-count').value)===0)$('#prompt-count').value='1';renderStatus();}));

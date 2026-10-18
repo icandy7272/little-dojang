@@ -2,6 +2,10 @@
 
 面向 5 岁孩子与陪练家长的第一版网页。无需账号，不使用摄像头。
 
+**在线使用：[taekwondo.cheerup.tech](https://taekwondo.cheerup.tech/)** · [GitHub](https://github.com/icandy7272/little-dojang)
+
+![自动检查](https://github.com/icandy7272/little-dojang/actions/workflows/ci.yml/badge.svg)
+
 ## 启动
 
 已安装 Python 3 的电脑，在项目目录执行：

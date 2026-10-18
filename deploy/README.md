@@ -1,5 +1,16 @@
 # 腾讯云部署
 
+## 当前站点
+
+- 正式地址：https://taekwondo.cheerup.tech/
+- 腾讯云既有 Ubuntu 服务器，Nginx 直接提供静态文件。
+- 文件目录：`/var/www/little-dojang/releases/<commit>/`，`current` 链接指向当前版本。
+- 域名配置：`/etc/nginx/sites-available/taekwondo.cheerup.tech`。仓库中的 `taekwondo.cheerup.tech.conf` 为对应配置。
+- HTTPS 使用 Let’s Encrypt；证书由已有 Certbot 定时任务续期，续期后需 reload Nginx。
+- 网站本身无需常驻 Node/Python 服务，不依赖开发者电脑在线。
+- 更新时只上传 `dist/`，发布到新版本目录后切换 `current` 链接；回滚时将链接切回上一目录。
+
+
 这个项目是静态网站，不需要数据库和应用服务器。先执行 `npm test` 与 `npm run build`，仅发布 `dist/`。不要将整个仓库目录作为网站根目录。
 
 ## 已有腾讯云 CVM / 轻量服务器
