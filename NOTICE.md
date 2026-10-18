@@ -11,6 +11,8 @@ It does not grant rights to third-party teaching videos, music, trademarks or li
 
 The project is independent and is not affiliated with or endorsed by Kukkiwon or the referenced schools.
 
-第一段动作卡的 SVG 图形由本项目原创，随项目采用 MIT 许可。
-其用途为完成姿势与动作顺序的记忆辅助，不是国技院官方技术图解。
-未使用或改编 Wikimedia Commons、Snapkick 的图片素材。
+第一段动作卡展示 Snapkick 太极一章页面的真人照片，示范者 Eva Sandersen。
+来源：https://snapkick.app/poomsae/taegeuk-il-jang
+图片从原网站加载，未镜像、未打包或存储在本项目发布内容中。
+图片版权归原权利人；第三方照片不适用本项目 MIT 许可，亦未确认有开放转载许可。
+此前左右关系不正确的原创 SVG 示意图已撤下。
