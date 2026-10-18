@@ -14,3 +14,18 @@
 .video-cover:focus-visible{outline:3px solid var(--green);outline-offset:-5px}
 .video-cover:disabled{opacity:1;cursor:wait}
 @media(prefers-reduced-motion:reduce){.video-cover .video-emblem{transition:none}}
+/* First lesson: original illustrated memory cards. */
+.step-art-note{font-size:11px;color:#73816c;line-height:1.8;margin:8px 0 18px}
+#steps-list:has(.illustrated-step){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0;list-style:none}
+.step-row.illustrated-step{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;align-items:start;margin:0}
+.illustrated-step .step-number{grid-column:1;grid-row:2;margin-top:2px}
+.step-art-button{grid-column:1/-1;border:0;background:transparent;padding:0;cursor:zoom-in;color:var(--green);width:100%;font:inherit;text-align:left;border-radius:12px}
+.step-art-button:hover{background:#edf4e8}.step-art-button:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+.pose-svg{display:block;width:100%;height:auto;max-height:225px}
+.art-caption{display:flex;justify-content:space-between;padding:8px 4px;font-size:13px;font-weight:600}
+.illustrated-step .step-copy{grid-column:2;grid-row:2;min-width:0}.illustrated-step .step-copy strong{font-size:14px;line-height:1.7}.illustrated-step .step-copy small{display:block;line-height:1.8;margin-top:4px}
+.step-movement{display:block;margin-top:9px;font-size:11px;color:var(--green)}
+.illustrated-step .facing{grid-column:2;font-size:10px;justify-self:start;margin:0;padding:3px 8px;background:#f1f5ec;border-radius:5px}
+.step-art-dialog{max-width:500px;width:calc(100% - 32px)}.step-art-dialog>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.step-art-dialog h2{font-size:21px}.step-art-dialog header button{border:0;background:transparent;font-size:28px;color:var(--ink);cursor:pointer;min-width:44px;min-height:44px}.step-art-dialog .pose-svg{max-height:420px}.step-art-dialog #step-art-detail{font-size:14px;line-height:1.9}
+@media(max-width:480px){#steps-list:has(.illustrated-step){gap:10px}.step-row.illustrated-step{padding:10px;grid-template-columns:22px 1fr;gap:7px}.illustrated-step .step-copy strong{font-size:12px}.illustrated-step .step-copy small{font-size:10px}.art-caption{font-size:12px}.illustrated-step .step-number{width:22px;height:22px;font-size:10px}.step-movement{font-size:10px}}
+@media print{.print-sheet:has(.print-illustrated-step){padding:0}.print-sheet:has(.print-illustrated-step) ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;padding-left:20px}.print-sheet .print-illustrated-step{break-inside:avoid;line-height:1.6;font-size:10px;margin:0}.print-pose{position:relative}.print-pose .pose-svg{height:108px;max-height:none;width:100%;print-color-adjust:exact;-webkit-print-color-adjust:exact}.print-pose>span{display:block;text-align:center;font-weight:bold;margin-bottom:3px}.print-sheet:has(.print-illustrated-step) h1{font-size:21px}.print-sheet:has(.print-illustrated-step) h2{font-size:15px;margin:9px 0}.print-sheet:has(.print-illustrated-step) p{font-size:10px;line-height:1.6;margin:7px 0}.print-sheet:has(.print-illustrated-step) .print-chant{padding:7px;font-size:14px}.print-sheet:has(.print-illustrated-step) .print-check{padding:7px 0}}

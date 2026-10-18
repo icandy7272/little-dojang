@@ -10,3 +10,7 @@ It does not grant rights to third-party teaching videos, music, trademarks or li
 - Local video files are supplied by each user and are not uploaded by the application.
 
 The project is independent and is not affiliated with or endorsed by Kukkiwon or the referenced schools.
+
+第一段动作卡的 SVG 图形由本项目原创，随项目采用 MIT 许可。
+其用途为完成姿势与动作顺序的记忆辅助，不是国技院官方技术图解。
+未使用或改编 Wikimedia Commons、Snapkick 的图片素材。

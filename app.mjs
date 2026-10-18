@@ -1,3 +1,4 @@
+import {stepArt,stepSVG,stepFigure} from './step-art.mjs';
 import {lessons,statuses,VIDEO_ID,BILIBILI_ID,dayKey,parseTime,validRange,formatTime,readStore,writeStore,saveAttempt,summary} from './core.mjs';
 import {LessonPlayer} from './player.mjs';
 const $=selector=>document.querySelector(selector);
@@ -20,7 +21,8 @@ function renderLesson(){const l=lesson();loaded=false;player.hide();if('speechSy
  $('#lesson-kicker').textContent=`小挑战 ${String(index+1).padStart(2,'0')} / 04 · ${l.subtitle}`;$('#lesson-title').textContent=l.name;$('#count-badge').textContent=l.range;
  $('#clip-description').textContent=`第 ${index+1} 段慢速连贯示范 · ${formatTime(l.start)}–${formatTime(l.end)}`;
  $('#chant').textContent=l.chant;$('#solo-goal').textContent=l.goal;$('#parent-focus').textContent=l.focus;$('#parent-help').textContent=l.help;$('#parent-praise').textContent=`“${l.praise}”`;
- $('#steps-list').innerHTML=l.steps.map(s=>`<li class="step-row"><span class="step-number">${s.n}</span><div class="step-copy"><strong>${s.cue}</strong><small>${s.action}</small></div><span class="facing">面向${s.facing}方</span></li>`).join('');
+ $('#steps-list').innerHTML=l.steps.map(s=>`<li class="step-row ${stepArt[s.n]?'illustrated-step':''}"><span class="step-number">${s.n}</span>${stepFigure(s.n)}<div class="step-copy"><strong>${s.cue}</strong><small>${s.action}</small>${stepArt[s.n]?`<span class="step-movement">${stepArt[s.n].turn}</span>`:''}</div><span class="facing">面向${s.facing}方</span></li>`).join('');
+ $('#step-art-note').hidden=index!==0;
  $('#previous').disabled=index===0;$('#next').disabled=index===lessons.length-1;$('#pagination-count').textContent=`${index+1} / 4 个小挑战`;
  $('#practice-note').value=data.notes[l.id]??'';$('#prompt-count').value='0';chosenStatus=null;renderStatus();$('#save-message').textContent='';revealed=false;renderProgress();renderMode();
 }
@@ -75,7 +77,7 @@ $('#range-form').addEventListener('submit',e=>{e.preventDefault();const a=$('#ra
 $('#reset-range').addEventListener('click',()=>{$('#range-start').value=formatTime(lesson().start);$('#range-end').value=formatTime(lesson().end);$('#range-error').textContent='';});
 $('#whole-video').addEventListener('click',()=>window.open(sourceURL(896),'_blank','noopener'));
 $('#explain-video').addEventListener('click',()=>window.open(sourceURL(lesson().explain),'_blank','noopener'));
-function printLessons(all){const selected=all?lessons:[lesson()];$('#print-area').innerHTML=selected.map(l=>`<section class="print-sheet"><p>小小道馆 · 太极一章亲子陪练</p><h1>${escape(l.name)}</h1><p>${escape(l.range)} · ${escape(l.subtitle)}</p><p class="print-chant">${escape(l.chant)}</p><h2>动作分解</h2><ol>${l.steps.map(s=>`<li value="${s.n}"><strong>${escape(s.cue)}</strong><br>${escape(s.action)}。面向起始朝向的${escape(s.facing)}方。</li>`).join('')}</ol><h2>家长只盯一个重点</h2><p>${escape(l.focus)}</p><p>${escape(l.help)}</p><p>鼓励孩子：${escape(l.praise)}</p><p>全部方向以起始朝向为参照，左右以练习者自己为准。先记顺序，技术细节由教练确认。</p><p class="print-check">日期：____________　□ 独立完成　□ 需要提示　□ 再练一练<br><br>提示次数：______　陪练小记：________________________________</p><p class="print-source">示范来源：${sourceURL(l.start)} （${formatTime(l.start)}–${formatTime(l.end)}）<br>中文口令为记忆辅助，非官方技术译文。</p></section>`).join('');window.print();}
+function printLessons(all){const selected=all?lessons:[lesson()];$('#print-area').innerHTML=selected.map(l=>`<section class="print-sheet"><p>小小道馆 · 太极一章亲子陪练</p><h1>${escape(l.name)}</h1><p>${escape(l.range)} · ${escape(l.subtitle)}</p><p class="print-chant">${escape(l.chant)}</p><h2>动作分解</h2><ol>${l.steps.map(s=>`<li value="${s.n}" class="${stepArt[s.n]?'print-illustrated-step':''}">${stepFigure(s.n,{print:true})}<strong>${escape(s.cue)}</strong><br>${escape(s.action)}。面向起始朝向的${escape(s.facing)}方。</li>`).join('')}</ol><h2>家长只盯一个重点</h2><p>${escape(l.focus)}</p><p>${escape(l.help)}</p><p>鼓励孩子：${escape(l.praise)}</p><p>全部方向以起始朝向为参照，左右以练习者自己为准。动作图为侧面完成姿势的记忆示意，不表示转身过程；绿色表示本拍动作手。先记顺序，技术细节由教练确认。</p><p class="print-check">日期：____________　□ 独立完成　□ 需要提示　□ 再练一练<br><br>提示次数：______　陪练小记：________________________________</p><p class="print-source">示范来源：${sourceURL(l.start)} （${formatTime(l.start)}–${formatTime(l.end)}）<br>中文口令为记忆辅助，非官方技术译文。</p></section>`).join('');window.print();}
 $('#print-card').addEventListener('click',()=>printLessons(false));$('#print-guide').addEventListener('click',()=>printLessons(true));
 // A visible link remains usable if an embed is blocked by the platform or network.
 const fallback=document.createElement('a');fallback.id='original-video';fallback.target='_blank';fallback.rel='noopener';fallback.className='text-button';fallback.style.fontSize='10px';fallback.textContent='在原平台打开本段 ↗';$('#player-toolbar').append(fallback);
@@ -85,3 +87,5 @@ $('#lesson-list').addEventListener('click',updateLink);$('#previous').addEventLi
 window.addEventListener('focus',()=>{if(lastDay!==dayKey()){lastDay=dayKey();renderProgress();}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){player.pause();if('speechSynthesis'in window)window.speechSynthesis.cancel();}});
 renderLesson();updateLink();
+
+$('#steps-list').addEventListener('click',e=>{const b=e.target.closest('[data-step-art]');if(!b)return;const n=Number(b.dataset.stepArt),a=stepArt[n];if(!a)return;$('#step-art-title').textContent=`第 ${n} 拍 · ${a.hand}`;$('#step-art-content').innerHTML=stepSVG(n);$('#step-art-detail').textContent=`${a.turn}；${a.foot}，${a.stance}。面向起始朝向的${a.facing}方。`;$('#step-art-dialog').showModal();});
