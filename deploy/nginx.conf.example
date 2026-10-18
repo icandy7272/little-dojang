@@ -1,0 +1,22 @@
+# Replace the hostname and path for your environment.
+# An existing HTTPS server block may instead include a /taekwondo/ location.
+server {
+    listen 80;
+    server_name dojang.example.com;
+    root /var/www/little-dojang/current;
+    index index.html;
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    # Explicit MIME types for ES modules; some older mime.types files omit mjs.
+    location ~ \.mjs$ {
+        types { application/javascript mjs; }
+        try_files $uri =404;
+        add_header Cache-Control "no-cache";
+    }
+    location / {
+        try_files $uri $uri/ =404;
+        add_header Cache-Control "no-cache";
+    }
+}
