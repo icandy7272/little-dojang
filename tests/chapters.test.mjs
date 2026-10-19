@@ -58,3 +58,8 @@ test('Taegeuk E Jang groups match the actual four video parts: 6, 6, 2, 4 counts
  assert.deepEqual(chapters[1].lessons.map(l=>l.range),['第 1–6 拍','第 7–12 拍','第 13–14 拍','第 15–18 拍']);
  assert.deepEqual(chapters[1].lessons.map(l=>[l.start,l.end]),[[150,250],[250,341],[341,405],[405,466]]);
 });
+
+test('Taegeuk Il Jang keeps the independently checked video grouping: 6, 6, 4, 2 counts',()=>{
+ assert.deepEqual(chapters[0].lessons.map(l=>l.steps.map(s=>s.n)),[[1,2,3,4,5,6],[7,8,9,10,11,12],[13,14,15,16],[17,18]]);
+ assert.deepEqual(chapters[0].lessons.map(l=>l.range),['第 1–6 拍','第 7–12 拍','第 13–16 拍','第 17–18 拍']);
+});
