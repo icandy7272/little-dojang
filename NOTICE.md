@@ -11,8 +11,12 @@ It does not grant rights to third-party teaching videos, music, trademarks or li
 
 The project is independent and is not affiliated with or endorsed by Kukkiwon or the referenced schools.
 
-第一段动作卡展示 Snapkick 太极一章页面的真人照片，示范者 Eva Sandersen。
+两章动作卡展示 Snapkick 太极一章与二章页面的真人照片，示范者 Eva Sandersen。
 来源：https://snapkick.app/poomsae/taegeuk-il-jang
+二章：https://snapkick.app/poomsae/taegeuk-e-jang
 图片从原网站加载，未镜像、未打包或存储在本项目发布内容中。
 图片版权归原权利人；第三方照片不适用本项目 MIT 许可，亦未确认有开放转载许可。
 此前左右关系不正确的原创 SVG 示意图已撤下。
+
+太极二章视频：国技院 https://www.youtube.com/watch?v=tGlrUplKHh8 ，B 站中文字幕版 https://www.bilibili.com/video/BV1zu4m1M7Jg/ 。原平台播放，未下载或转存。
+动作顺序交叉参考：https://www.phoenixtaekwondo.net/tkdpoomsae2.html 。

@@ -38,3 +38,8 @@
 @media(max-width:480px){.step-photo{height:190px}.photo-foot-label{font-size:10px;line-height:1.6}}
 @media print{.print-pose .step-photo{height:112px;object-fit:contain}.print-pose>span{font-size:9px}.photo-fallback{font-size:9px}}
 .illustrated-step .step-art-button{grid-row:1}.illustrated-step .photo-foot-label{grid-row:2}.illustrated-step .step-number,.illustrated-step .step-copy{grid-row:3}.illustrated-step .facing{grid-row:4}
+.photo-sequence{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.photo-stage{display:block;min-width:0}.photo-stage-label{display:block;font-size:11px;line-height:1.6;text-align:center;margin-top:6px;color:var(--green)}.photo-sequence .step-photo{height:220px}.step-art-dialog .photo-sequence .step-photo{height:38vh}.step-art-dialog .photo-stage-label{font-size:13px}
+@media(max-width:480px){#steps-list:has(.photo-sequence){grid-template-columns:1fr}.photo-sequence .step-photo{height:215px}.step-art-dialog .photo-sequence{grid-template-columns:1fr}.step-art-dialog .photo-sequence .step-photo{height:auto;max-height:50vh}}
+@media print{.print-pose .photo-sequence .step-photo{height:112px}.photo-stage-label{font-size:8px}}
+.chapter-picker{display:flex;align-items:center;gap:14px;padding:24px 0 0;color:var(--ink)}.chapter-picker label{font-size:14px;font-weight:600}.chapter-picker select{padding:10px 34px 10px 14px;border:1px solid #bacab3;background:#fff;border-radius:9px;color:var(--green);font-size:15px}.chapter-picker>span{font-size:11px;color:#819078}
+@media(max-width:720px){.chapter-picker{padding-top:18px;gap:10px;flex-wrap:wrap}.chapter-picker>span{flex-basis:100%;font-size:10px}.chapter-picker label{font-size:12px}.chapter-picker select{font-size:14px}}

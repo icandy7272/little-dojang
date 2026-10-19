@@ -8,7 +8,7 @@
     "test": "node --test tests/*.test.mjs",
     "build": "node scripts/build.mjs"
   },
-  "description": "太极一章亲子陪练：分段示范、中文口令与家长辅导",
+  "description": "太极一章、二章亲子陪练：分段示范、中文口令与家长辅导",
   "license": "MIT",
   "repository": {
     "type": "git",

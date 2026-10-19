@@ -1,3 +1,4 @@
+import {secondLessons} from './chapter2.mjs';
 export const BILIBILI_ID = 'BV1u2421M7EE';
 export const VIDEO_ID = 'WhkjRruCBTo';
 const step = (n, action, cue, facing) => ({n, action, cue, facing});
@@ -31,6 +32,11 @@ export const lessons = [
  praise:'你从开始坚持到了最后，我们击个掌！',
  steps:[step(17,'右转 90°，左弓步，左手下格挡','转向后方，向下挡','后'),step(18,'右脚向前成右弓步，右手中位冲拳，发声','上步，打一拳，哈！','后')]}
 ];
+export const chapters=[
+ {id:'taegeuk1',name:'太极一章',lessons,videoId:VIDEO_ID,bilibiliId:BILIBILI_ID,wholeStart:896,photoSource:'https://snapkick.app/poomsae/taegeuk-il-jang',reference:'https://www.phoenixtaekwondo.net/tkdpoomsae1.html',videoNote:'慢速连贯示范'},
+ {id:'taegeuk2',name:'太极二章',lessons:secondLessons,videoId:'tGlrUplKHh8',bilibiliId:'BV1zu4m1M7Jg',wholeStart:67,photoSource:'https://snapkick.app/poomsae/taegeuk-e-jang',reference:'https://www.phoenixtaekwondo.net/tkdpoomsae2.html',videoNote:'分段讲解与示范'}
+];
+export const allLessons=chapters.flatMap(c=>c.lessons);
 export const statuses={independent:'独立完成',prompted:'需要提示',retry:'再练一练'};
 export const STORE_KEY='little-dojang-v1';
 export function dayKey(date=new Date()) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
@@ -43,17 +49,17 @@ export function parseTime(value) {
 export function validRange(start,end){const a=parseTime(start),b=parseTime(end);return a!==null&&b!==null&&a<b;}
 export function formatTime(value){return `${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,'0')}`;}
 const empty=()=>({attempts:[],ranges:{},notes:{}});
-function validAttempt(a){return a&&lessons.some(l=>l.id===a.lesson)&&Object.hasOwn(statuses,a.status)&&Number.isInteger(a.prompts)&&a.prompts>=0&&a.prompts<=99&&typeof a.note==='string'&&typeof a.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(a.date);}
+function validAttempt(a){return a&&allLessons.some(l=>l.id===a.lesson)&&Object.hasOwn(statuses,a.status)&&Number.isInteger(a.prompts)&&a.prompts>=0&&a.prompts<=99&&typeof a.note==='string'&&typeof a.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(a.date);}
 export function readStore(storage){
  try {const d=JSON.parse(storage.getItem(STORE_KEY));if(!d||Array.isArray(d)||!Array.isArray(d.attempts))return empty();
  const result=empty();result.attempts=d.attempts.filter(validAttempt).slice(-500);
- for(const l of lessons){for(const source of ['online','bilibili','local']){const key=`${source}:${l.id}`, r=d.ranges?.[key];if(r&&validRange(r.start,r.end))result.ranges[key]={start:parseTime(r.start),end:parseTime(r.end)};}if(typeof d.notes?.[l.id]==='string')result.notes[l.id]=d.notes[l.id].slice(0,1000);}
+ for(const l of allLessons){for(const source of ['online','bilibili','local']){const key=`${source}:${l.id}`, r=d.ranges?.[key];if(r&&validRange(r.start,r.end))result.ranges[key]={start:parseTime(r.start),end:parseTime(r.end)};}if(typeof d.notes?.[l.id]==='string')result.notes[l.id]=d.notes[l.id].slice(0,1000);}
  return result;
  }catch{return empty();}
 }
 export function writeStore(storage,data){try{storage.setItem(STORE_KEY,JSON.stringify(data));return true;}catch{return false;}}
 export function saveAttempt(data,attempt){if(!validAttempt(attempt))throw new Error('练习记录无效');return {...data,attempts:[...data.attempts,attempt].slice(-500)};}
-export function summary(data,date=dayKey()){
- const today=data.attempts.filter(a=>a.date===date),latest={};for(const a of today)latest[a.lesson]=a;
+export function summary(data,date=dayKey(),lessonIds=null){
+ const today=data.attempts.filter(a=>a.date===date&&(!lessonIds||lessonIds.includes(a.lesson))),latest={};for(const a of today)latest[a.lesson]=a;
  return {attempts:today.length,practiced:Object.keys(latest).length,independent:Object.values(latest).filter(a=>a.status==='independent').length,latest};
 }
