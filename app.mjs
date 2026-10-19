@@ -43,7 +43,7 @@ function renderMode(){
  $('#loop').closest('label').hidden=source==='bilibili';$('#speed').closest('label').hidden=source==='bilibili';$('#collapse-video').hidden=source!=='bilibili';
  const r=getRange();if(!loaded)$('#player-message').textContent=source==='bilibili'?`B 站在线播放 · 本段结束 ${formatTime(r.end)} 请手动暂停，倍速在视频中设置。`:source==='local'?'选择本机教学视频，不会上传。':'YouTube 在线示范；无法访问时，可切换 B 站。';
  if(typeof fallback!=='undefined')updateLink();
- const range=getRange();if(range)$('#clip-description').textContent=`第 ${index+1} 段 · ${formatTime(range.start)}–${formatTime(range.end)}`;
+ const range=getRange();if(range)$('#clip-description').textContent=`第 ${index+1} 段 · ${lesson().range} · ${formatTime(range.start)}–${formatTime(range.end)}`;
 }
 function selectLesson(i){if(i<0||i>=lessons.length)return;index=i;renderLesson();}
 function renderStatus(){for(const b of $$('[data-status]'))b.setAttribute('aria-pressed',String(chosenStatus===b.dataset.status));$('#save-attempt').disabled=!chosenStatus;}

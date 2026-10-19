@@ -51,3 +51,10 @@ test('clearing a chapter-specific local selection removes its media source befor
  const calls=[];const p=Object.create(LessonPlayer.prototype);p.hide=()=>calls.push('stop');p.localURL=null;p.video={removeAttribute:name=>calls.push(name),load:()=>calls.push('load')};
  p.clearFile();assert.deepEqual(calls,['stop','src','load']);assert.equal(p.localURL,null);
 });
+
+test('Taegeuk E Jang groups match the actual four video parts: 6, 6, 2, 4 counts',()=>{
+ const actual=chapters[1].lessons.map(l=>l.steps.map(s=>s.n));
+ assert.deepEqual(actual,[[1,2,3,4,5,6],[7,8,9,10,11,12],[13,14],[15,16,17,18]]);
+ assert.deepEqual(chapters[1].lessons.map(l=>l.range),['第 1–6 拍','第 7–12 拍','第 13–14 拍','第 15–18 拍']);
+ assert.deepEqual(chapters[1].lessons.map(l=>[l.start,l.end]),[[150,250],[250,341],[341,405],[405,466]]);
+});
